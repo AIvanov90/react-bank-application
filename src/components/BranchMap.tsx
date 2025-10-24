@@ -1,6 +1,6 @@
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { useEffect, useRef } from "react";
 import "leaflet/dist/leaflet.css";
-import { divIcon } from "leaflet";
+import L, { divIcon, Map as LeafletMap, Marker as LeafletMarker } from "leaflet";
 
 export type BranchMapBranch = {
   id: string;
@@ -44,6 +44,10 @@ export default function BranchMap({
   width?: number | string;
   zoom?: number;
 }) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const mapRef = useRef<LeafletMap | null>(null);
+  const markerRef = useRef<LeafletMarker | null>(null);
+
   const hasCoords =
     typeof branch?.lat === "number" && typeof branch?.lon === "number";
 
@@ -51,27 +55,60 @@ export default function BranchMap({
     ? [branch.lat!, branch.lon!]
     : [51.5074, -0.1278];
 
+  // Initialize the map once
+  useEffect(() => {
+    if (!containerRef.current || mapRef.current) return;
+
+    const map = L.map(containerRef.current, {
+      center,
+      zoom,
+      scrollWheelZoom: true,
+    });
+    mapRef.current = map;
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "&copy; OpenStreetMap contributors",
+      maxZoom: 19,
+    }).addTo(map);
+
+    return () => {
+      map.remove();
+      mapRef.current = null;
+      markerRef.current = null;
+    };
+  }, []);
+
+  // Update view and marker when branch/zoom changes
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    map.setView(center, zoom, { animate: false });
+
+    if (hasCoords) {
+      if (markerRef.current) {
+        markerRef.current.setLatLng([branch.lat!, branch.lon!]);
+      } else {
+        markerRef.current = L.marker([branch.lat!, branch.lon!], {
+          icon: branchIcon,
+          zIndexOffset: 1000,
+        })
+          .addTo(map)
+          .bindPopup(`<b>${branch.name}</b><br/>${branch.addressLine ?? ""}`);
+      }
+    } else if (markerRef.current) {
+      map.removeLayer(markerRef.current);
+      markerRef.current = null;
+    }
+  }, [branch.id, branch.lat, branch.lon, branch.name, branch.addressLine, zoom]);
+
   return (
-    <MapContainer
-      center={center}
-      zoom={zoom}
+    <div
+      ref={containerRef}
       style={{ height: `${height}px`, width }}
-      scrollWheelZoom={true}
-    >
-      <TileLayer
-        attribution="&copy; OpenStreetMap contributors"
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      {hasCoords && (
-        <Marker position={[branch.lat!, branch.lon!]} icon={branchIcon}>
-          <Popup>
-            <b>{branch.name}</b>
-            <br />
-            {branch.addressLine}
-          </Popup>
-        </Marker>
-      )}
-    </MapContainer>
+      role="region"
+      aria-label="Branch location map"
+    />
   );
 }
  
