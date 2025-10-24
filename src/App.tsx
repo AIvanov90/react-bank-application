@@ -6,7 +6,7 @@ import BranchDetailsPage from "./pages/BranchDetailsPage";
 function App() {
   return (
     <Container>
-      <Flex>
+      <Flex mb={4}>
         <Heading size="md" textAlign="center">
           <Link to="/">HSBC Branches</Link>
         </Heading>
