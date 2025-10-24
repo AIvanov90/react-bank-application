@@ -4,6 +4,7 @@ import {
   Box, Heading, Text, SimpleGrid, Badge, Divider, Link, Spinner
 } from "@chakra-ui/react";
 import { useBranches } from "../api/hooks";
+import BranchMap from "../components/BranchMap";
 
 export default function BranchDetailsPage() {
   const { id } = useParams<{ id: string }>();
@@ -48,10 +49,17 @@ export default function BranchDetailsPage() {
         </>
       )}
 
-      {/* Map placeholder — add Leaflet later if you want the bonus */}
       {branch.lat && branch.lon ? (
-        <Box mt={4} fontSize="sm" opacity={0.8}>
-          Coordinates: {branch.lat.toFixed(6)}, {branch.lon.toFixed(6)}
+        <Box mt={4}>
+          <BranchMap
+            branch={{
+              id: String(branch.id),
+              name: branch.name,
+              addressLine: branch.addressLine,
+              lat: branch.lat,
+              lon: branch.lon,
+            }}
+          />
         </Box>
       ) : null}
 
