@@ -14,6 +14,10 @@ export type Branch = {
   phone?: string;
   sortCodes?: string[];
   brandName?: string;
+  type?: string;
+  serviceAndFacility?: string[];
+  accessibility?: string[];
+  customerSegment?: string[];
 };
 
 const BASE =
@@ -36,6 +40,7 @@ export function normalizeBranches(raw: any): Branch[] {
       for (const b of brand.Branch ?? []) {
         const id = String(b.Identification ?? crypto.randomUUID());
         const name = String(b.Name ?? "Branch");
+        const type = b.Type ? String(b.Type) : undefined;
 
         // Address
         const pa = b.PostalAddress ?? {};
@@ -78,6 +83,10 @@ export function normalizeBranches(raw: any): Branch[] {
           hours: days,
           phone,
           sortCodes: b.SortCode ?? [],
+          type,
+          serviceAndFacility: b.ServiceAndFacility ?? [],
+          accessibility: b.Accessibility ?? [],
+          customerSegment: b.CustomerSegment ?? [],
         });
       }
     }
