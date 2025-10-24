@@ -12,7 +12,6 @@ function App() {
         </Heading>
         <Spacer />
       </Flex>
-
       <Routes>
         <Route path="/" element={<BranchListPage />} />
         <Route path="/branch/:id" element={<BranchDetailsPage />} />

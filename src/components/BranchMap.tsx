@@ -33,6 +33,18 @@ const makeSvgPin = () =>
 
 const branchIcon = makeSvgPin();
 
+function buildPopupContent(branch: BranchMapBranch) {
+  const container = document.createElement("div");
+  const bold = document.createElement("b");
+  bold.textContent = branch.name ?? "Branch";
+  container.appendChild(bold);
+  container.appendChild(document.createElement("br"));
+  if (branch.addressLine) {
+    container.appendChild(document.createTextNode(branch.addressLine));
+  }
+  return container;
+}
+
 export default function BranchMap({
   branch,
   height = 420,
@@ -86,15 +98,18 @@ export default function BranchMap({
     map.setView(center, zoom, { animate: false });
 
     if (hasCoords) {
+      const content = buildPopupContent(branch);
       if (markerRef.current) {
         markerRef.current.setLatLng([branch.lat!, branch.lon!]);
+        const popup = markerRef.current.getPopup();
+        if (popup) popup.setContent(content);
       } else {
         markerRef.current = L.marker([branch.lat!, branch.lon!], {
           icon: branchIcon,
           zIndexOffset: 1000,
         })
           .addTo(map)
-          .bindPopup(`<b>${branch.name}</b><br/>${branch.addressLine ?? ""}`);
+          .bindPopup(content);
       }
     } else if (markerRef.current) {
       map.removeLayer(markerRef.current);
